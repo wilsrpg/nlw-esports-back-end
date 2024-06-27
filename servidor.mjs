@@ -8,6 +8,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import mysql from 'mysql2'
+import { google } from 'googleapis';
 
 /*lembrete: ajeitar no front-end:
 -deletei último anúncio e continuou dizendo q tinha 1 anúncio encontrado
@@ -42,6 +43,17 @@ const pool = mysql.createPool({
 	user: 'wilsrpg_helio',
 	password: process.env.SENHA_DO_DB
 }).promise();
+
+const OAuth2 = google.auth.OAuth2;
+const oAuth2Client = new OAuth2(
+	process.env.OAUTH_CLIENTID,
+	process.env.OAUTH_CLIENT_SECRET,
+	"https://developers.google.com/oauthplayground"
+);
+
+oAuth2Client.setCredentials({
+	refresh_token: process.env.OAUTH_REFRESH_TOKEN
+});
 
 //const poolp2 = await mysqlp.createPool({
 //	host: 'johnny.heliohost.org',
@@ -853,10 +865,11 @@ servidor.post('/anuncios', async (req, resp)=>{
 		if (sessaoExiste.erro)
 			return resp.status(sessaoExiste.status).json({erro: sessaoExiste.erro});
 		const anuncio = req.body.anuncio;
-		if (anuncio.idDoUsuario != sessaoExiste.idDoUsuario) {
-			console.log('problema no id do usuário; id recebido e id do token:');
-			console.log(anuncio.idDoUsuario);
-			console.log(sessaoExiste.idDoUsuario);
+		if (sessaoExiste.idDoUsuario != anuncio.idDoUsuario) {
+			//console.log('problema no id do usuário; id recebido e id do token:');
+			//console.log(anuncio.idDoUsuario);
+			//console.log(sessaoExiste.idDoUsuario);
+			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.'});
 		}
 		
 		if(isNaN(anuncio.tempoDeJogoEmMeses))
@@ -2130,15 +2143,19 @@ servidor.post('/recuperacao-de-conta', async (req, resp)=>{
 async function enviarEmail(email, assunto, texto) {
 	try {
 		//console.log('entrou em enviarEmail');
+
+		const accessToken = await oAuth2Client.getAccessToken();
+
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
 				user: process.env.EMAIL,
-				pass: process.env.SENHA_DO_EMAIL,
+				//pass: process.env.SENHA_DO_EMAIL,
 				type: 'OAuth2',
         clientId: process.env.OAUTH_CLIENTID,
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
-        refreshToken: process.env.OAUTH_REFRESH_TOKEN
+        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+				accessToken: accessToken
 			},
 				// tls: {
 				// 	// secureProtocol: 'TLSv1_method',
