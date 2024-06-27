@@ -2131,10 +2131,14 @@ async function enviarEmail(email, assunto, texto) {
 	try {
 		//console.log('entrou em enviarEmail');
 		const transporter = nodemailer.createTransport({
-			service: 'Hotmail',
+			service: 'gmail',
 			auth: {
 				user: process.env.EMAIL,
-				pass: process.env.SENHA_DO_EMAIL
+				pass: process.env.SENHA_DO_EMAIL,
+				type: 'OAuth2',
+        clientId: process.env.OAUTH_CLIENTID,
+        clientSecret: process.env.OAUTH_CLIENT_SECRET,
+        refreshToken: process.env.OAUTH_REFRESH_TOKEN
 			},
 				// tls: {
 				// 	// secureProtocol: 'TLSv1_method',
