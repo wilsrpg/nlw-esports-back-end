@@ -17,11 +17,11 @@ servidor.use(cors({
 dotenvConfig();
 
 const pool = mysql.createPool({
-	host: 'johnny.heliohost.org',
-	port: '3306',
-	database: 'wilsrpg_heliodb',
-	user: 'wilsrpg_helio',
-	password: process.env.SENHA_DO_DB
+	host: process.env.DB_HOST,
+	port: process.env.DB_PORTA,
+	database: process.env.DB_BANCO,
+	user: process.env.DB_USUARIO,
+	password: process.env.DB_SENHA
 }).promise();
 
 const OAuth2 = google.auth.OAuth2;
