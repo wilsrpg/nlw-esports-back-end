@@ -10,11 +10,6 @@ import nodemailer from 'nodemailer';
 import mysql from 'mysql2'
 import { google } from 'googleapis';
 
-/*lembrete: ajeitar no front-end:
--deletei último anúncio e continuou dizendo q tinha 1 anúncio encontrado
--alterei senha e o email na caixa d texto foi apagado
-*/
-
 const servidor = express();
 servidor.use(express.json());
 servidor.use(cors({
@@ -48,7 +43,7 @@ const OAuth2 = google.auth.OAuth2;
 const oAuth2Client = new OAuth2(
 	process.env.OAUTH_CLIENTID,
 	process.env.OAUTH_CLIENT_SECRET,
-	"https://developers.google.com/oauthplayground"
+	'https://developers.google.com/oauthplayground'
 );
 
 oAuth2Client.setCredentials({
@@ -129,7 +124,7 @@ async function iniciar() {
 		//	return console.log(results);
 		//});
 
-		//const res = await pool.query('INSERT INTO todos(title) VALUES ("testando");');
+		//const res = await pool.query(`INSERT INTO todos(title) VALUES ('testando');`);
 		//console.log(res);
 
 
@@ -664,9 +659,9 @@ async function iniciar() {
 	//);
 	
 	//const ultimoAnuncio = await db.get('SELECT * FROM Anuncios
-		//WHERE dataDeCriacao = (SELECT MAX(dataDeCriacao) FROM Anuncios);');
-	//const anuncioEspecifico = await db.get('SELECT * FROM Anuncios
-		//WHERE id = "a4a5b098-7cde-4a45-842f-57ad0706ab12";');
+	//	WHERE dataDeCriacao = (SELECT MAX(dataDeCriacao) FROM Anuncios);');
+	//const anuncioEspecifico = await db.get(`SELECT * FROM Anuncios
+	//	WHERE id = 'a4a5b098-7cde-4a45-842f-57ad0706ab12';`);
 	//console.log(ultimoAnuncio.dataDeCriacao);
 	//const d = new Date(ultimoAnuncio.dataDeCriacao);
 	//console.log(d.getTime());
@@ -789,8 +784,8 @@ iniciar();
 
 servidor.get('/', async (req, resp)=>{
 	try {
-    console.log("Servidor acessado com sucesso.");
-		return resp.status(200).json({status: "Servidor acessado com sucesso."});
+    console.log('Servidor acessado com sucesso.');
+		return resp.status(200).json({status: 'Servidor acessado com sucesso.'});
 	}
 	catch (erro) {
 		console.log(erro);
@@ -869,7 +864,7 @@ servidor.post('/anuncios', async (req, resp)=>{
 			//console.log('problema no id do usuário; id recebido e id do token:');
 			//console.log(anuncio.idDoUsuario);
 			//console.log(sessaoExiste.idDoUsuario);
-			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.'});
+			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.', codigo: 409});
 		}
 		
 		if(isNaN(anuncio.tempoDeJogoEmMeses))
@@ -882,7 +877,7 @@ servidor.post('/anuncios', async (req, resp)=>{
 			for (let j = 0; j < dias.length; j++)
 				if (isNaN(dias[j]) || dias[j] < 0 || dias[j] > 6)
 					return resp.status(400).json({erro: 'Dias em formato inválido.'});
-			//formato da hora deve ser 2 números, ":", 2 números, sem caracteres antes nem depois
+			//formato da hora deve ser 2 números, ':', 2 números, sem caracteres antes nem depois
 			if (!horaDe.match(/^\d{2}:\d{2}$/))
 				return resp.status(400).json({erro: 'Horário em formato inválido.'});
 			if (!horaAte.match(/^\d{2}:\d{2}$/))
@@ -1093,7 +1088,7 @@ async function pesquisar(query, idDoUsuario) {
 
 		for (let i = 0; i < query.qtdeFiltrosDisponibilidade; i++) {
 			let id = i == 0 ? '' : i+1;
-			//formato da hora deve ser 2 números, ":", 2 números, sem caracteres antes nem depois
+			//formato da hora deve ser 2 números, ':', 2 números, sem caracteres antes nem depois
 			if (query['de'+id] && !query['de'+id].match(/^\d{2}:\d{2}$/))
 				//return resp.status(400).json({erro: 'Horário em formato inválido.'});
 				return {status: 400, erro: 'Horário em formato inválido.'};
@@ -1737,6 +1732,7 @@ async function pesquisar(query, idDoUsuario) {
 	}
 }
 
+//página anúncios
 servidor.get('/anuncios', async (req, resp)=>{
 	console.log('GET anuncios, ip='+req.ip);
 	const anuncios = await pesquisar(req.query);
@@ -1745,13 +1741,14 @@ servidor.get('/anuncios', async (req, resp)=>{
 	return resp.status(200).json(anuncios);
 });
 
+//página meus anúncios
 servidor.get('/usuarios/:idDoUsuario/anuncios', async (req, resp)=>{
 	console.log('GET usuarios/:idDoUsuario/anuncios, id='+req.params.idDoUsuario+', ip='+req.ip);
 	const sessaoExiste = await autenticarSessao(req.get('Authorization'));
 	if (sessaoExiste.erro)
 		return resp.status(sessaoExiste.status).json({erro: sessaoExiste.erro});
 	if (sessaoExiste.idDoUsuario != req.params.idDoUsuario) //lembrete: é possível isso?
-		return resp.status(409).json({erro: 'O token não pertence ao usuário informado.'});
+		return resp.status(409).json({erro: 'O token não pertence ao usuário informado.', codigo: 409});
 	const anuncios = await pesquisar(req.query, req.params.idDoUsuario);
 	if (anuncios.erro)
 		return resp.status(anuncios.status).json({erro: anuncios.erro});
@@ -1845,7 +1842,7 @@ servidor.delete('/anuncios/:idDoAnuncio', async (req, resp)=>{
 			return resp.status(404).json({erro: 'Anúncio não encontrado.'});
 		}
 		if (sessaoExiste.idDoUsuario != anuncioExiste.idDoUsuario)
-			return resp.status(409).json({erro: 'O anúncio não pertence ao usuário informado.'});
+			return resp.status(409).json({erro: 'O anúncio não pertence ao usuário informado.', codigo: 409});
 		//await db.run(`DELETE FROM Anuncios WHERE idDoAnuncio = ${idDoAnuncio};`);
 		//await db.run(`DELETE FROM Disponibilidades WHERE idDoAnuncio = ${idDoAnuncio};`);
 		//await db.run(
@@ -1975,7 +1972,7 @@ servidor.get('/usuarios/:idDoUsuario/dados', async (req, resp)=>{
 		if (sessaoExiste.erro)
 			return resp.status(sessaoExiste.status).json({erro: sessaoExiste.erro});
 		if (sessaoExiste.idDoUsuario != idDoUsuario) //lembrete: é possível isso?
-			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.'});
+			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.', codigo: 409});
 		//const db = await abrirBanco;
 		//const usuario = await db.get(`SELECT nome, email FROM Usuarios WHERE id = ${idDoUsuario};`);
 		const [[usuario]] = await pool.query(
@@ -2005,7 +2002,7 @@ servidor.put('/usuarios/:idDoUsuario', async (req, resp)=>{
 		if (sessaoExiste.erro)
 			return resp.status(sessaoExiste.status).json({erro: sessaoExiste.erro});
 		if (sessaoExiste.idDoUsuario != idDoUsuario) //lembrete: é possível isso?
-			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.'});
+			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.', codigo: 409});
 		const usuarioExiste = await verificarCredenciais('', body.senha, sessaoExiste.idDoUsuario);
 		if (usuarioExiste.erro)
 			return resp.status(usuarioExiste.status).json({erro: usuarioExiste.erro});
@@ -2089,7 +2086,8 @@ servidor.put('/usuarios/:idDoUsuario', async (req, resp)=>{
 			WHERE id_do_usuario = '${sessaoExiste.idDoUsuario}' AND seletor != '${sessaoExiste.seletor}';`
 		);
 		console.log('Dados alterados com sucesso.');
-		return resp.status(200).json({ok: 'Dados alterados com sucesso.'});
+		const [[{email}]] = await pool.query(`SELECT email FROM usuario WHERE id = '${sessaoExiste.idDoUsuario}';`);
+		return resp.status(200).json({ok: 'Dados alterados com sucesso.', email: email});
 	}
 	catch (erro) {
 		//console.log('entrou no catch');
@@ -2341,7 +2339,7 @@ servidor.delete('/usuarios/:idDoUsuario', async (req, resp)=>{
 		if (sessaoExiste.erro)
 			return resp.status(sessaoExiste.status).json({erro: sessaoExiste.erro});
 		if (sessaoExiste.idDoUsuario != idDoUsuario) //lembrete: é possível isso?
-			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.'});
+			return resp.status(409).json({erro: 'O token não pertence ao usuário informado.', codigo: 409});
 		const usuarioExiste = await verificarCredenciais('', body.senha, sessaoExiste.idDoUsuario);
 		if (usuarioExiste.erro)
 			return resp.status(usuarioExiste.status).json({erro: usuarioExiste.erro});
