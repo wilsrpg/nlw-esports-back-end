@@ -803,12 +803,12 @@ servidor.post('/recuperacao-de-conta', async (req, resp)=>{
 		);
 		const emailEnviado = await enviarEmail(body.email, 'Redefinição de senha',
 			`<p>Clique no link abaixo para ir para a página de redefinição de senha:</p>
-			<a href='${process.env.ENDERECO_DO_SERVIDOR}/redefinir-senha?token=${uuidDoToken}&id=${usuarioExiste.id}'>
+			<a href='${process.env.ENDERECO_DA_PAGINA}/redefinir-senha?token=${uuidDoToken}&id=${usuarioExiste.id}'>
 				Redefinir senha
 			</a>
 			<br>
 			<p>Ou copie e cole o endereço abaixo em seu navegador:</p>
-			<p>${process.env.ENDERECO_DO_SERVIDOR}/redefinir-senha?token=${uuidDoToken}&id=${usuarioExiste.id}</p>`
+			<p>${process.env.ENDERECO_DA_PAGINA}/redefinir-senha?token=${uuidDoToken}&id=${usuarioExiste.id}</p>`
 		);
 		if (emailEnviado.erro)
 			return resp.status(emailEnviado.status).json({erro: emailEnviado.erro});
