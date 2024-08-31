@@ -18,6 +18,8 @@
     "googleapis": "^140.0.1",
     "mysql2": "^3.9.3",
     "nodemailer": "^6.9.7",
+    "sqlite": "^5.0.1",
+    "sqlite3": "^5.1.6",
     "uuid": "8.3.2"
   },
   "devDependencies": {

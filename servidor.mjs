@@ -1,5 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 import { config as dotenvConfig } from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
@@ -15,6 +17,11 @@ servidor.use(cors({
 }));
 
 dotenvConfig();
+
+const abrirBanco = open({
+	filename: 'db-bkp.sqlite',
+	driver: sqlite3.Database
+});
 
 const pool = mysql.createPool({
 	host: process.env.DB_HOST,
@@ -61,8 +68,7 @@ async function iniciar() {
 	//	nome_de_exibicao VARCHAR(255) NOT NULL,
 	//	email VARCHAR(255) NOT NULL UNIQUE,
 	//	hash_da_senha CHAR(60) NOT NULL,
-	//	timestamp_da_criacao_em_ms BIGINT NOT NULL,
-	//	data_de_criacao DATETIME NOT NULL
+	//	data_de_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	//);`
 	//);
 
@@ -72,7 +78,8 @@ async function iniciar() {
 	//	seletor CHAR(8) NOT NULL,
 	//	hash_do_token CHAR(60) NOT NULL,
 	//	manter_sessao BOOLEAN NOT NULL,
-	//	data_de_criacao DATETIME NOT NULL,
+	//	data_de_expiracao DATETIME NOT NULL,
+	//	data_de_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	//	FOREIGN KEY (id_do_usuario) REFERENCES usuario (id)
 	//	ON DELETE CASCADE
 	//);`
@@ -82,7 +89,7 @@ async function iniciar() {
 	//	id CHAR(36) PRIMARY KEY,
 	//	id_do_usuario CHAR(36) NOT NULL,
 	//	hash_do_token CHAR(60) NOT NULL,
-	//	data_de_criacao DATETIME NOT NULL,
+	//	data_de_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	//	FOREIGN KEY (id_do_usuario) REFERENCES usuario (id)
 	//	ON DELETE CASCADE
 	//);`
@@ -96,8 +103,7 @@ async function iniciar() {
 	//	tempo_de_jogo_em_meses INT NOT NULL,
 	//	discord VARCHAR(255) NOT NULL,
 	//	usa_chat_de_voz BOOLEAN NOT NULL,
-	//	timestamp_da_criacao_em_ms BIGINT NOT NULL,
-	//	data_de_criacao DATETIME NOT NULL,
+	//	data_de_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	//	FOREIGN KEY (id_do_usuario) REFERENCES usuario (id)
 	//	ON DELETE CASCADE
 	//);`
@@ -123,14 +129,173 @@ async function iniciar() {
 	//);`
 	//);
 
-	//await pool.query('ALTER TABLE usuario ALTER COLUMN data_de_criacao SET DEFAULT CURRENT_TIMESTAMP;');
-	//await pool.query('ALTER TABLE sessao ALTER COLUMN data_de_criacao SET DEFAULT CURRENT_TIMESTAMP;');
-	//await pool.query('ALTER TABLE recuperacao_de_conta ALTER COLUMN data_de_criacao SET DEFAULT CURRENT_TIMESTAMP;');
-	//await pool.query('ALTER TABLE anuncio ALTER COLUMN data_de_criacao SET DEFAULT CURRENT_TIMESTAMP;');
-	//await pool.query('ALTER TABLE sessao ADD data_de_expiracao DATETIME NOT NULL;');
+	const db = await abrirBanco;
+	const jogos = await db.all(`SELECT * FROM Jogos;`);
+	const usuarios = await db.all(`SELECT * FROM Usuarios;`);
+	const anuncios = await db.all(`SELECT * FROM Anuncios;`);
+	const disponibilidades = await db.all(`SELECT * FROM Disponibilidades;`);
+	const diasDasDisponibilidades = await db.all(`SELECT * FROM DiasDasDisponibilidades;`);
 
-	//await pool.query('ALTER TABLE usuario DROP COLUMN timestamp_da_criacao_em_ms;');
-	//await pool.query('ALTER TABLE anuncio DROP COLUMN timestamp_da_criacao_em_ms;');
+	////await pool.query(`DELETE FROM usuario;`);
+	//const [usuarios2] = await pool.query(`SELECT * FROM usuario;`);
+	//console.log(usuarios2.filter((a,i)=>i<5));
+	////await pool.query(`DELETE FROM disponibilidade;`);
+	//console.log('deletou disponibilidade');
+	////await pool.query(`DELETE FROM dia_da_disponibilidade;`);
+	//console.log('deletou dia_da_disponibilidade');
+	//const [anuncios2] = await pool.query(`SELECT * FROM anuncio;`);
+
+	console.log('jogos:');
+	console.log(jogos);
+
+	usuarios.map((usuario,i)=>{
+		usuario.uuid = uuidv4();
+		//usuarios2.some(usuario2=>{
+		//	if (usuario2.nome_de_usuario == usuario.nome)
+		//		usuario.uuid = usuario2.id;
+		//})
+		if (!usuario.email)
+			usuario.email = 'email'+i+'@vaz.io';
+		usuario.dataDeCriacaoEmSeg = parseInt(usuario.dataDeCriacao/1000);
+	});
+	console.log('usuarios:');
+	console.log(usuarios.filter((a,i)=>i<5));
+
+	anuncios.map(anuncio=>{
+		if (!anuncio.uuid)
+			anuncio.uuid = uuidv4();
+		anuncio.uuidDoJogo = jogos[anuncio.idDoJogo-1].uuid;
+		usuarios.some(usuario=>{
+			if (usuario.id == anuncio.idDoUsuario)
+				anuncio.uuidDoUsuario = usuario.uuid;
+		})
+		anuncio.dataDeCriacaoEmSeg = parseInt(anuncio.dataDeCriacao/1000);
+	});
+	console.log('anuncios:');
+	console.log(anuncios.filter((a,i)=>i<5));
+
+	anuncios.map(anuncio=>{
+		if (!anuncio.uuid)
+			anuncio.uuid = uuidv4();
+			//anuncios2.some(anuncio2=>{
+			//	if (anuncio2.timestamp_da_criacao_em_ms == anuncio.dataDeCriacao)
+			//		anuncio.uuid = anuncio2.id;
+			//})
+	});
+
+	disponibilidades.map(disp=>{
+		anuncios.some(anuncio=>{
+			if (anuncio.idDoAnuncio == disp.idDoAnuncio)
+				disp.uuidDoAnuncio = anuncio.uuid;
+		})
+		//anuncios2.some(anuncio2=>{
+		//	if (anuncio2.idDoAnuncio == disp.idDoAnuncio)
+		//		disp.uuidDoAnuncio = anuncio2.uuid;
+		//})
+	});
+	console.log('disponibilidades:');
+	console.log(disponibilidades.filter((a,i)=>i<5));
+
+	console.log('diasDasDisponibilidades:');
+	console.log(diasDasDisponibilidades.filter((a,i)=>i<5));
+
+
+	//importação dos dados
+	//let i = 0;
+	//console.log('importando...');
+
+	//i = 0;
+	//while (i < jogos.length) {
+	//	await pool.query(
+	//		`INSERT INTO jogo (id, nome, nome_url, url_da_imagem)
+	//		VALUES (?,?,?,?);`,
+	//		[
+	//			jogos[i].uuid, jogos[i].nome, jogos[i].nomeUrl, jogos[i].urlImagem
+	//		]
+	//	);
+	//	i++;
+	//}
+	//const [jogoMysql] = await pool.query(`SELECT * FROM jogo;`);
+	//console.log('importou jogos');
+	//console.log(jogoMysql);
+
+	//i = 0;
+	//while (i < usuarios.length) {
+	//	await pool.query(
+	//		`INSERT INTO usuario (id, nome_de_usuario, nome_de_exibicao, email, hash_da_senha,
+	//			timestamp_da_criacao_em_ms, data_de_criacao)
+	//		VALUES (?,?,?,?,?,?,FROM_UNIXTIME(?));`,
+	//		[
+	//			usuarios[i].uuid, usuarios[i].nome, usuarios[i].nome, usuarios[i].email, usuarios[i].senhaHash,
+	//	 		usuarios[i].dataDeCriacao, usuarios[i].dataDeCriacaoEmSeg
+	//		]
+	//	);
+	//	i++;
+	//}
+	//const [usuarioMysql] = await pool.query(`SELECT * FROM usuario;`);
+	//console.log('importou usuarios');
+	//console.log(usuarioMysql);
+
+	//i = 0;
+	//while (i < anuncios.length) {
+	//	await pool.query(
+	//		`INSERT INTO anuncio (id, id_do_jogo, id_do_usuario, nome_no_jogo, tempo_de_jogo_em_meses,
+	//		discord, usa_chat_de_voz, timestamp_da_criacao_em_ms, data_de_criacao)
+	//		VALUES (?,?,?,?,?,?,?,?,FROM_UNIXTIME(?));`,
+	//		[
+	//			anuncios[i].uuid, anuncios[i].uuidDoJogo, anuncios[i].uuidDoUsuario, anuncios[i].nomeNoJogo,
+	//			anuncios[i].tempoDeJogoEmMeses, anuncios[i].discord, anuncios[i].usaChatDeVoz,
+	//	 		anuncios[i].dataDeCriacao, anuncios[i].dataDeCriacaoEmSeg
+	//		]
+	//	);
+	//	i++;
+	//}
+	//const [anuncioMysql] = await pool.query(`SELECT * FROM anuncio;`);
+	//console.log('importou anuncios');
+	//console.log(anuncioMysql.filter((a,i)=>i<5));
+
+	//i = 0;
+	//while (i < disponibilidades.length) {
+	//	await pool.query(
+	//		`INSERT INTO disponibilidade (id, id_do_anuncio, hora_de_inicio, hora_de_termino)
+	//		VALUES (?,?,?,?);`,
+	//		[
+	//			disponibilidades[i].id, disponibilidades[i].uuidDoAnuncio, disponibilidades[i].horaDeInicio,
+	//			disponibilidades[i].horaDeTermino
+	//		]
+	//	);
+	//	i++;
+	//}
+	//const [disponibilidadeMysql] = await pool.query(`SELECT * FROM disponibilidade;`);
+	//console.log('importou disponibilidades');
+	//console.log(disponibilidadeMysql.filter((a,i)=>i<5));
+
+	//i = 0;
+	//while (i < diasDasDisponibilidades.length) {
+	//	await pool.query(
+	//		`INSERT INTO dia_da_disponibilidade (id_da_disponibilidade, dia)
+	//		VALUES (?,?);`,
+	//		[
+	//			diasDasDisponibilidades[i].idDaDisponibilidade, diasDasDisponibilidades[i].dia
+	//		]
+	//	);
+	//	i++;
+	//}
+	//const [dia_da_disponibilidadeMysql] = await pool.query(`SELECT * FROM dia_da_disponibilidade;`);
+	//console.log('importou dias das disponibilidades');
+	//console.log(dia_da_disponibilidadeMysql.filter((a,i)=>i<5));
+
+
+	//const [a] = await pool.query('SELECT UNIX_TIMESTAMP();');
+	//const [a] = await pool.query('SELECT FROM_UNIXTIME(UNIX_TIMESTAMP());');
+	//const [a] = await pool.query('SELECT NOW();');
+	//const [a] = await pool.query('SELECT CURRENT_DATE();');
+	//const [a] = await poolp.query('SELECT UNIX_TIMESTAMP();');
+	//const conn = await pool.getConnection();
+	//const [a] = await conn.query('SELECT UNIX_TIMESTAMP();');
+	//const [a] = await conn.query('SELECT UNIX_TIMESTAMP();');
+	//console.log(a);
+
 }
 iniciar();
 
