@@ -50,7 +50,9 @@ const DURACAO_DO_TOKEN_DE_RECUPERACAO = 10*60*1000; //10 minutos
 //procedimentos iniciais
 async function iniciar() {
 	await pool.query(`DELETE FROM sessao WHERE data_de_expiracao < FROM_UNIXTIME(${Date.now()/1000});`);
-	await pool.query(`DELETE FROM recuperacao_de_conta WHERE data_de_expiracao < FROM_UNIXTIME(${Date.now()/1000});`);
+	await pool.query(`DELETE FROM recuperacao_de_conta
+		WHERE data_de_criacao < FROM_UNIXTIME(${(Date.now() - DURACAO_DO_TOKEN_DE_RECUPERACAO) / 1000});`
+	);
 
 	////criação das tabelas
 	//console.log('criando tabela "jogo"...');
