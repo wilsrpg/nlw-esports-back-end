@@ -49,20 +49,22 @@ const DURACAO_DO_TOKEN_DE_RECUPERACAO = 10*60*1000; //10 minutos
 
 //procedimentos iniciais
 async function iniciar() {
-	//await pool.query(`DELETE FROM sessao WHERE data_de_expiracao < FROM_UNIXTIME(${Date.now()/1000});`);
-	//await pool.query(`DELETE FROM recuperacao_de_conta WHERE data_de_expiracao < FROM_UNIXTIME(${Date.now()/1000});`);
+	await pool.query(`DELETE FROM sessao WHERE data_de_expiracao < FROM_UNIXTIME(${Date.now()/1000});`);
+	await pool.query(`DELETE FROM recuperacao_de_conta WHERE data_de_expiracao < FROM_UNIXTIME(${Date.now()/1000});`);
 
-	//criação das tabelas
-
-	//con.query(`CREATE TABLE IF NOT EXISTS jogo (
+	////criação das tabelas
+	//console.log('criando tabela "jogo"...');
+	//await pool.query(`CREATE TABLE IF NOT EXISTS jogo (
 	//	id CHAR(36) PRIMARY KEY,
 	//	nome VARCHAR(255) NOT NULL,
 	//	nome_url VARCHAR(255) NOT NULL,
 	//	url_da_imagem VARCHAR(255) NOT NULL
 	//);`
 	//);
+	//console.log('tabela "jogo" criada.');
 
-	//con.query(`CREATE TABLE IF NOT EXISTS usuario (
+	//console.log('criando tabela "usuario"...');
+	//await pool.query(`CREATE TABLE IF NOT EXISTS usuario (
 	//	id CHAR(36) PRIMARY KEY,
 	//	nome_de_usuario VARCHAR(255) NOT NULL UNIQUE,
 	//	nome_de_exibicao VARCHAR(255) NOT NULL,
@@ -71,8 +73,10 @@ async function iniciar() {
 	//	data_de_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	//);`
 	//);
+	//console.log('tabela "usuario" criada.');
 
-	//con.query(`CREATE TABLE IF NOT EXISTS sessao (
+	//console.log('criando tabela "sessao"...');
+	//await pool.query(`CREATE TABLE IF NOT EXISTS sessao (
 	//	id CHAR(36) PRIMARY KEY,
 	//	id_do_usuario CHAR(36) NOT NULL,
 	//	seletor CHAR(8) NOT NULL,
@@ -84,8 +88,10 @@ async function iniciar() {
 	//	ON DELETE CASCADE
 	//);`
 	//);
+	//console.log('tabela "sessao" criada.');
 
-	//con.query(`CREATE TABLE IF NOT EXISTS recuperacao_de_conta (
+	//console.log('criando tabela "recuperacao_de_conta"...');
+	//await pool.query(`CREATE TABLE IF NOT EXISTS recuperacao_de_conta (
 	//	id CHAR(36) PRIMARY KEY,
 	//	id_do_usuario CHAR(36) NOT NULL,
 	//	hash_do_token CHAR(60) NOT NULL,
@@ -94,8 +100,10 @@ async function iniciar() {
 	//	ON DELETE CASCADE
 	//);`
 	//);
+	//console.log('tabela "recuperacao_de_conta" criada.');
 
-	//con.query(`CREATE TABLE IF NOT EXISTS anuncio (
+	//console.log('criando tabela "anuncio"...');
+	//await pool.query(`CREATE TABLE IF NOT EXISTS anuncio (
 	//	id CHAR(36) PRIMARY KEY,
 	//	id_do_jogo CHAR(36) NOT NULL,
 	//	id_do_usuario CHAR(36) NOT NULL,
@@ -108,8 +116,10 @@ async function iniciar() {
 	//	ON DELETE CASCADE
 	//);`
 	//);
+	//console.log('tabela "anuncio" criada.');
 
-	//con.query(
+	//console.log('criando tabela "disponibilidade"...');
+	//await pool.query(
 	//	`CREATE TABLE IF NOT EXISTS disponibilidade (
 	//		id INT AUTO_INCREMENT PRIMARY KEY,
 	//		id_do_anuncio CHAR(36) NOT NULL,
@@ -119,8 +129,10 @@ async function iniciar() {
 	//		ON DELETE CASCADE
 	//	);`
 	//);
+	//console.log('tabela "disponibilidade" criada.');
 
-	//con.query(`CREATE TABLE IF NOT EXISTS dia_da_disponibilidade (
+	//console.log('criando tabela "dia_da_disponibilidade"...');
+	//await pool.query(`CREATE TABLE IF NOT EXISTS dia_da_disponibilidade (
 	//	id INT AUTO_INCREMENT PRIMARY KEY,
 	//	id_da_disponibilidade INT NOT NULL,
 	//	dia INT NOT NULL,
@@ -128,82 +140,66 @@ async function iniciar() {
 	//	ON DELETE CASCADE
 	//);`
 	//);
-
-	const db = await abrirBanco;
-	const jogos = await db.all(`SELECT * FROM Jogos;`);
-	const usuarios = await db.all(`SELECT * FROM Usuarios;`);
-	const anuncios = await db.all(`SELECT * FROM Anuncios;`);
-	const disponibilidades = await db.all(`SELECT * FROM Disponibilidades;`);
-	const diasDasDisponibilidades = await db.all(`SELECT * FROM DiasDasDisponibilidades;`);
-
-	////await pool.query(`DELETE FROM usuario;`);
-	//const [usuarios2] = await pool.query(`SELECT * FROM usuario;`);
-	//console.log(usuarios2.filter((a,i)=>i<5));
-	////await pool.query(`DELETE FROM disponibilidade;`);
-	//console.log('deletou disponibilidade');
-	////await pool.query(`DELETE FROM dia_da_disponibilidade;`);
-	//console.log('deletou dia_da_disponibilidade');
-	//const [anuncios2] = await pool.query(`SELECT * FROM anuncio;`);
-
-	console.log('jogos:');
-	console.log(jogos);
-
-	usuarios.map((usuario,i)=>{
-		usuario.uuid = uuidv4();
-		//usuarios2.some(usuario2=>{
-		//	if (usuario2.nome_de_usuario == usuario.nome)
-		//		usuario.uuid = usuario2.id;
-		//})
-		if (!usuario.email)
-			usuario.email = 'email'+i+'@vaz.io';
-		usuario.dataDeCriacaoEmSeg = parseInt(usuario.dataDeCriacao/1000);
-	});
-	console.log('usuarios:');
-	console.log(usuarios.filter((a,i)=>i<5));
-
-	anuncios.map(anuncio=>{
-		if (!anuncio.uuid)
-			anuncio.uuid = uuidv4();
-		anuncio.uuidDoJogo = jogos[anuncio.idDoJogo-1].uuid;
-		usuarios.some(usuario=>{
-			if (usuario.id == anuncio.idDoUsuario)
-				anuncio.uuidDoUsuario = usuario.uuid;
-		})
-		anuncio.dataDeCriacaoEmSeg = parseInt(anuncio.dataDeCriacao/1000);
-	});
-	console.log('anuncios:');
-	console.log(anuncios.filter((a,i)=>i<5));
-
-	anuncios.map(anuncio=>{
-		if (!anuncio.uuid)
-			anuncio.uuid = uuidv4();
-			//anuncios2.some(anuncio2=>{
-			//	if (anuncio2.timestamp_da_criacao_em_ms == anuncio.dataDeCriacao)
-			//		anuncio.uuid = anuncio2.id;
-			//})
-	});
-
-	disponibilidades.map(disp=>{
-		anuncios.some(anuncio=>{
-			if (anuncio.idDoAnuncio == disp.idDoAnuncio)
-				disp.uuidDoAnuncio = anuncio.uuid;
-		})
-		//anuncios2.some(anuncio2=>{
-		//	if (anuncio2.idDoAnuncio == disp.idDoAnuncio)
-		//		disp.uuidDoAnuncio = anuncio2.uuid;
-		//})
-	});
-	console.log('disponibilidades:');
-	console.log(disponibilidades.filter((a,i)=>i<5));
-
-	console.log('diasDasDisponibilidades:');
-	console.log(diasDasDisponibilidades.filter((a,i)=>i<5));
+	//console.log('tabela "dia_da_disponibilidade" criada.');
 
 
-	//importação dos dados
+	////preparação dos dados
+	//console.log('obtendo dados do arquivo "db-bkp.sqlite"...');
+	//const db = await abrirBanco;
+	//const jogos = await db.all(`SELECT * FROM Jogos;`);
+	//const usuarios = await db.all(`SELECT * FROM Usuarios;`);
+	//const anuncios = await db.all(`SELECT * FROM Anuncios;`);
+	//const disponibilidades = await db.all(`SELECT * FROM Disponibilidades;`);
+	//const diasDasDisponibilidades = await db.all(`SELECT * FROM DiasDasDisponibilidades;`);
+	//console.log('dados obtidos.');
+
+	//console.log('jogos:');
+	//console.log(jogos);
+
+	//usuarios.map((usuario,i)=>{
+	//	usuario.uuid = uuidv4();
+	//	if (!usuario.email)
+	//		usuario.email = 'email'+i+'@vaz.io';
+	//	usuario.dataDeCriacaoEmSeg = parseInt(usuario.dataDeCriacao/1000);
+	//});
+	//console.log('usuarios:');
+	//console.log(usuarios.filter((a,i)=>i<5));
+
+	//anuncios.map(anuncio=>{
+	//	if (!anuncio.uuid)
+	//		anuncio.uuid = uuidv4();
+	//	anuncio.uuidDoJogo = jogos[anuncio.idDoJogo-1].uuid;
+	//	usuarios.some(usuario=>{
+	//		if (usuario.id == anuncio.idDoUsuario)
+	//			anuncio.uuidDoUsuario = usuario.uuid;
+	//	})
+	//	anuncio.dataDeCriacaoEmSeg = parseInt(anuncio.dataDeCriacao/1000);
+	//});
+	//console.log('anuncios:');
+	//console.log(anuncios.filter((a,i)=>i<5));
+
+	//anuncios.map(anuncio=>{
+	//	if (!anuncio.uuid)
+	//		anuncio.uuid = uuidv4();
+	//});
+
+	//disponibilidades.map(disp=>{
+	//	anuncios.some(anuncio=>{
+	//		if (anuncio.idDoAnuncio == disp.idDoAnuncio)
+	//			disp.uuidDoAnuncio = anuncio.uuid;
+	//	})
+	//});
+	//console.log('disponibilidades:');
+	//console.log(disponibilidades.filter((a,i)=>i<5));
+
+	//console.log('diasDasDisponibilidades:');
+	//console.log(diasDasDisponibilidades.filter((a,i)=>i<5));
+
+
+	////importação dos dados
 	//let i = 0;
-	//console.log('importando...');
-
+	
+	//console.log('inserindo dados na tabela "jogo"...');
 	//i = 0;
 	//while (i < jogos.length) {
 	//	await pool.query(
@@ -219,15 +215,15 @@ async function iniciar() {
 	//console.log('importou jogos');
 	//console.log(jogoMysql);
 
+	//console.log('inserindo dados na tabela "usuario"...');
 	//i = 0;
 	//while (i < usuarios.length) {
 	//	await pool.query(
-	//		`INSERT INTO usuario (id, nome_de_usuario, nome_de_exibicao, email, hash_da_senha,
-	//			timestamp_da_criacao_em_ms, data_de_criacao)
-	//		VALUES (?,?,?,?,?,?,FROM_UNIXTIME(?));`,
+	//		`INSERT INTO usuario (id, nome_de_usuario, nome_de_exibicao, email, hash_da_senha, data_de_criacao)
+	//		VALUES (?,?,?,?,?,FROM_UNIXTIME(?));`,
 	//		[
 	//			usuarios[i].uuid, usuarios[i].nome, usuarios[i].nome, usuarios[i].email, usuarios[i].senhaHash,
-	//	 		usuarios[i].dataDeCriacao, usuarios[i].dataDeCriacaoEmSeg
+	//	 		usuarios[i].dataDeCriacaoEmSeg
 	//		]
 	//	);
 	//	i++;
@@ -236,16 +232,16 @@ async function iniciar() {
 	//console.log('importou usuarios');
 	//console.log(usuarioMysql);
 
+	//console.log('inserindo dados na tabela "anuncio"...');
 	//i = 0;
 	//while (i < anuncios.length) {
 	//	await pool.query(
 	//		`INSERT INTO anuncio (id, id_do_jogo, id_do_usuario, nome_no_jogo, tempo_de_jogo_em_meses,
-	//		discord, usa_chat_de_voz, timestamp_da_criacao_em_ms, data_de_criacao)
-	//		VALUES (?,?,?,?,?,?,?,?,FROM_UNIXTIME(?));`,
+	//		discord, usa_chat_de_voz, data_de_criacao)
+	//		VALUES (?,?,?,?,?,?,?,FROM_UNIXTIME(?));`,
 	//		[
 	//			anuncios[i].uuid, anuncios[i].uuidDoJogo, anuncios[i].uuidDoUsuario, anuncios[i].nomeNoJogo,
-	//			anuncios[i].tempoDeJogoEmMeses, anuncios[i].discord, anuncios[i].usaChatDeVoz,
-	//	 		anuncios[i].dataDeCriacao, anuncios[i].dataDeCriacaoEmSeg
+	//			anuncios[i].tempoDeJogoEmMeses, anuncios[i].discord, anuncios[i].usaChatDeVoz, anuncios[i].dataDeCriacaoEmSeg
 	//		]
 	//	);
 	//	i++;
@@ -254,6 +250,7 @@ async function iniciar() {
 	//console.log('importou anuncios');
 	//console.log(anuncioMysql.filter((a,i)=>i<5));
 
+	//console.log('inserindo dados na tabela "disponibilidade"...');
 	//i = 0;
 	//while (i < disponibilidades.length) {
 	//	await pool.query(
@@ -270,6 +267,7 @@ async function iniciar() {
 	//console.log('importou disponibilidades');
 	//console.log(disponibilidadeMysql.filter((a,i)=>i<5));
 
+	//console.log('inserindo dados na tabela "dia_da_disponibilidade"...');
 	//i = 0;
 	//while (i < diasDasDisponibilidades.length) {
 	//	await pool.query(
@@ -284,18 +282,6 @@ async function iniciar() {
 	//const [dia_da_disponibilidadeMysql] = await pool.query(`SELECT * FROM dia_da_disponibilidade;`);
 	//console.log('importou dias das disponibilidades');
 	//console.log(dia_da_disponibilidadeMysql.filter((a,i)=>i<5));
-
-
-	//const [a] = await pool.query('SELECT UNIX_TIMESTAMP();');
-	//const [a] = await pool.query('SELECT FROM_UNIXTIME(UNIX_TIMESTAMP());');
-	//const [a] = await pool.query('SELECT NOW();');
-	//const [a] = await pool.query('SELECT CURRENT_DATE();');
-	//const [a] = await poolp.query('SELECT UNIX_TIMESTAMP();');
-	//const conn = await pool.getConnection();
-	//const [a] = await conn.query('SELECT UNIX_TIMESTAMP();');
-	//const [a] = await conn.query('SELECT UNIX_TIMESTAMP();');
-	//console.log(a);
-
 }
 iniciar();
 
