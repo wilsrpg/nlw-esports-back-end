@@ -4,9 +4,8 @@
   "description": "",
   "main": "servidor.mjs",
   "scripts": {
-    "dev": "node-dev api/servidor.mjs",
-    "start": "node api/servidor.mjs",
-    "vercel-build": "echo teste"
+    "dev": "node-dev servidor.mjs",
+    "start": "node servidor.mjs"
   },
   "keywords": [],
   "author": "",
