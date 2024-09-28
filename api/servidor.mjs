@@ -10,7 +10,7 @@ import nodemailer from 'nodemailer';
 import mysql from 'mysql2'
 import { google } from 'googleapis';
 
-const servidor = express();
+export const servidor = express();
 servidor.use(express.json());
 servidor.use(cors({
 	//origin: 'http://meudominio.com'
