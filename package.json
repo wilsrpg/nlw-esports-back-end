@@ -5,7 +5,8 @@
   "main": "servidor.mjs",
   "scripts": {
     "dev": "node-dev api/servidor.mjs",
-    "start": "node api/servidor.mjs"
+    "start": "node api/servidor.mjs",
+    "vercel-build": "echo teste"
   },
   "keywords": [],
   "author": "",
