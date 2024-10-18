@@ -528,7 +528,7 @@ async function pesquisar(query, idDoUsuario) {
 		if (query.qtdeFiltrosDisponibilidade) {
 			let qualquerDia;
 			let diasQueJoga = [];
-			const dias = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+			const dias = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 			let deHora;
 			let ateHora;
 
