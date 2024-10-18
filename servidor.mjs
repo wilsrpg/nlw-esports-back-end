@@ -656,7 +656,7 @@ async function pesquisar(query, idDoUsuario) {
 				}
 				${entre ? 'AND tempo_de_jogo_em_meses <=' + tempoDeJogoEmMeses2 : ''}
 				${usaChatDeVoz == undefined ? '' : `AND usa_chat_de_voz = ${usaChatDeVoz}`}
-				${sqlDisp2.length > 0 ? ' AND ' + sqlDisp2.join(disponivelEmQualquer ? ' OR ' : ' AND ') : ''}
+				${sqlDisp2.length > 0 ? ' AND (' + sqlDisp2.join(disponivelEmQualquer ? ' OR ' : ' AND ') + ')' : ''}
 			GROUP BY anuncio.id
 			ORDER BY data_de_criacao DESC;`;
 
