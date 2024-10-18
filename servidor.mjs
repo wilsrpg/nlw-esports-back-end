@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+//import sqlite3 from 'sqlite3';
+//import { open } from 'sqlite';
 import { config as dotenvConfig } from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
@@ -18,10 +18,10 @@ servidor.use(cors({
 
 dotenvConfig();
 
-const abrirBanco = open({
-	filename: 'db-bkp.sqlite',
-	driver: sqlite3.Database
-});
+//const abrirBanco = open({
+//	filename: 'db-bkp.sqlite',
+//	driver: sqlite3.Database
+//});
 
 const pool = mysql.createPool({
 	host: process.env.DB_HOST,
